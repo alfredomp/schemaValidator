@@ -1,0 +1,19 @@
+{
+  "name": "schemavalidator",
+  "version": "1.0.0",
+  "description": "Validator of schema using public schemas",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "schema",
+    "validator"
+  ],
+  "author": "Alfredo Morales Pinzon",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^6.10.0",
+    "request": "^2.88.0"
+  }
+}
