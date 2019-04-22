@@ -25,17 +25,17 @@ var sendRequest = async (options) => {
 // Main function
 var main = async () => {
 
-	// --------------------------------------------------------------------------
-  // Simple test
+// --------------------------------------------------------------------------
+// Simple test
 
  //  var schema = {
  //    "$id": "http://example.com/schemas/schema.json",
  //    "type": "object",
-	//   "properties": {
-	//     "foo": { "$ref": "defs.json#/definitions/int" },
-	//     "bar": { "$ref": "defs.json#/definitions/str" }
-	//   }
-	// };
+	// "properties": {
+	//   "foo": { "$ref": "defs.json#/definitions/int" },
+	//   "bar": { "$ref": "defs.json#/definitions/str" }
+	// }
+ //  };
 
 	// var defsSchema = {
 	//   "$id": "http://example.com/schemas/defs.json",
@@ -52,23 +52,25 @@ var main = async () => {
 	// Test getting the schemas from github
 
   // Get the schemas
+  let baseSchema_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/'
+
   let optionsWorkflow = {
-    url: 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/workflow.schema.json',
+    url: baseSchema_Url + 'workflow.schema.json',
     method: 'GET'
   };
 
   let optionsCore = {
-    url: 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/core.schema.json',
+    url: baseSchema_Url + 'core.schema.json',
     method: 'GET'
   };
 
   let optionsRoi = {
-    url: 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/roi.schema.json',
+    url: baseSchema_Url + 'roi.schema.json',
     method: 'GET'
   };
 
   let optionsAnnotation = {
-    url: 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/annotation.schema.json',
+    url: baseSchema_Url + 'annotation.schema.json',
     method: 'GET'
   };
 
@@ -84,9 +86,11 @@ var main = async () => {
   var annotationSchemaString = await sendRequest(optionsAnnotation)
   var annotationSchema = JSON.parse(annotationSchemaString)
 
-  // Validations steps
+  // Validate schemas
 
   try{
+
+  	console.log("Validate schemas:")
 
     var ajvOptions = {
 	    schemas: [workflowSchema, coreSchema, roiSchema, annotationSchema],
@@ -95,18 +99,63 @@ var main = async () => {
 
 	  var ajv_url = new Ajv(ajvOptions); // options can be passed, e.g. {allErrors: true}
 
-	  var validate_workflow = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/workflow.schema.json');
+	  var validateWorkflow = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/workflow.schema.json');
 
-	  console.log("validate_workflow:", validate_workflow, '\n\n')
+    if(validateWorkflow)
+	  	console.log("validateWorkflow OK")
 
-	  var validate_annotation = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/workflow.schema.json');
+	  var validateAnnotation = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/annotation.schema.json');
 
-	  console.log("validate_annotation:", validate_annotation)
+	  if(validateAnnotation)
+	  	console.log("validateAnnotation OK")
+
+	  var validateRoi = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/roi.schema.json');
+
+	  if(validateRoi)
+	  	console.log("validateRoi OK")
+
+	  console.log("")
 
   }
   catch(e){
   	console.log('Error creating validate_url:', e)
   }
+
+  // Load schema instances to be validated
+  let baseInstance_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
+
+  let optionsRoiExample = {
+    url: baseInstance_Url + 'roi_notSubmitted.json',
+    method: 'GET'
+  };
+
+  let optionsAnnotationExample = {
+    url: baseInstance_Url + 'annotation_notSubmitted.json',
+    method: 'GET'
+  };
+
+  // Validate schema instances
+  console.log("Validate instances:")
+
+  var roiInstance = JSON.parse(await sendRequest(optionsRoiExample))
+  var annotationInstance = JSON.parse(await sendRequest(optionsAnnotationExample))
+
+  var validAnnotation = validateAnnotation(annotationInstance)
+  if (!validAnnotation){
+  	console.log("Not valid annotation. Error:", validateAnnotation.errors);
+  }
+  else{
+  	console.log("Annotation instance OK")
+  }
+
+  var validRoi = validateRoi(roiInstance)
+  if (!validRoi){
+  	console.log("Not valid roi. Error:", validRoi.errors);
+  }
+  else{
+  	console.log("Roi instance OK")
+  }
+
 
 }
 
