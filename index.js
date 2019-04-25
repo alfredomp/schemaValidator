@@ -50,51 +50,74 @@ var main = async () => {
 
 	// --------------------------------------------------------------------------
 	// Test getting the schemas from github
+  let url_schemas = false // True if loading the schemas locally
+
+  var workflowSchemeName = 'workflow.schema.json'
+  var coreSchemaName = 'core.schema.json'
+  var roiSchemaName = 'roi.schema.json'
+  var annotationSchemaName = 'annotation.schema.json'
+  var toolSchemaName = 'tool.schema.json'
+
+  var workflowSchema = {}
+  var coreSchema = {}
+  var roiSchema = {}
+  var annotationSchema = {}
+  var toolSchema = {}
+
 
   // Get the schemas
-  let baseSchema_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/'
+  if(url_schemas){
+    let baseSchema_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/'
 
-  let optionsWorkflow = {
-    url: baseSchema_Url + 'workflow.schema.json',
-    method: 'GET'
-  };
+    let optionsWorkflow = {
+      url: baseSchema_Url + workflowSchemeName,
+      method: 'GET'
+    };
 
-  let optionsCore = {
-    url: baseSchema_Url + 'core.schema.json',
-    method: 'GET'
-  };
+    let optionsCore = {
+      url: baseSchema_Url + coreSchemaName,
+      method: 'GET'
+    };
 
-  let optionsRoi = {
-    url: baseSchema_Url + 'roi.schema.json',
-    method: 'GET'
-  };
+    let optionsRoi = {
+      url: baseSchema_Url + roiSchemaName,
+      method: 'GET'
+    };
 
-  let optionsAnnotation = {
-    url: baseSchema_Url + 'annotation.schema.json',
-    method: 'GET'
-  };
+    let optionsAnnotation = {
+      url: baseSchema_Url + annotationSchemaName,
+      method: 'GET'
+    };
 
-  let optionsTool = {
-    url: baseSchema_Url + 'tool.schema.json',
-    method: 'GET'
-  };
+    let optionsTool = {
+      url: baseSchema_Url + toolSchemaName,
+      method: 'GET'
+    };
 
-  var workflowSchemaString = await sendRequest(optionsWorkflow)
-  var workflowSchema = JSON.parse(workflowSchemaString)
+    workflowSchemaString = await sendRequest(optionsWorkflow)
+    workflowSchema = JSON.parse(workflowSchemaString)
 
-  var coreSchemaString = await sendRequest(optionsCore)
-  var coreSchema = JSON.parse(coreSchemaString)
+    coreSchemaString = await sendRequest(optionsCore)
+    coreSchema = JSON.parse(coreSchemaString)
 
-  var roiSchemaString = await sendRequest(optionsRoi)
-  var roiSchema = JSON.parse(roiSchemaString)
+    roiSchemaString = await sendRequest(optionsRoi)
+    roiSchema = JSON.parse(roiSchemaString)
 
-  console.log("coreSchema.defintions.roiInOut:", coreSchema.definitions.roiInOut)
+    annotationSchemaString = await sendRequest(optionsAnnotation)
+    annotationSchema = JSON.parse(annotationSchemaString)
 
-  var annotationSchemaString = await sendRequest(optionsAnnotation)
-  var annotationSchema = JSON.parse(annotationSchemaString)
+    toolSchemaString = await sendRequest(optionsTool)
+    toolSchema = JSON.parse(toolSchemaString)
+  }
+  else{
+    let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/schemas/'
 
-  var toolSchemaString = await sendRequest(optionsTool)
-  var toolSchema = JSON.parse(toolSchemaString)
+    workflowSchema = require(folderpath + workflowSchemeName)
+    coreSchema = require(folderpath + coreSchemaName)
+    roiSchema = require(folderpath + roiSchemaName)
+    annotationSchema = require(folderpath + annotationSchemaName)
+    toolSchema = require(folderpath + toolSchemaName)
+  }
 
   // Validate schemas
 
@@ -137,151 +160,49 @@ var main = async () => {
   }
 
   // Load schema instances to be validated
-  let baseInstance_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
 
-  let optionsRoiExample = {
-    url: baseInstance_Url + 'roi_notSubmitted.json',
-    method: 'GET'
-  };
+  let url_instances = false
 
-  let optionsAnnotationExample = {
-    url: baseInstance_Url + 'annotation_notSubmitted.json',
-    method: 'GET'
-  };
+  var roiInstanceFileName = 'roi_notSubmitted.json'
+  var annotationInstanceFileName = 'annotation_notSubmitted.json'
+  var toolInstanceFileName = 'tool_annotationThreeViewers.json'
 
-  let optionsToolExample = {
-    url: baseInstance_Url + 'tool_annotationThreeViewers.json',
-    method: 'GET'
-  };
+  var roiInstance = {}
+  var annotationInstance = {}
+  var toolInstance = {}
+
+  if(url_instances){
+    let baseInstance_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
+
+    let optionsRoiExample = {
+      url: baseInstance_Url + roiInstanceFileName,
+      method: 'GET'
+    };
+
+    let optionsAnnotationExample = {
+      url: baseInstance_Url + annotationInstanceFileName,
+      method: 'GET'
+    };
+
+    let optionsToolExample = {
+      url: baseInstance_Url + toolInstanceFileName,
+      method: 'GET'
+    };
+
+    roiInstance = JSON.parse(await sendRequest(optionsRoiExample))
+    annotationInstance = JSON.parse(await sendRequest(optionsAnnotationExample))
+    toolInstance = JSON.parse(await sendRequest(optionsToolExample))
+  }
+  else{
+    let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/examples/annotationWorkflow/'
+
+    roiInstance = require(folderpath + roiInstanceFileName)
+    annotationInstance = require(folderpath + annotationInstanceFileName)
+    toolInstance = require(folderpath + toolInstanceFileName)
+  }
 
   // Validate schema instances
   console.log("Validate instances:")
-
-  var roiInstance = JSON.parse(await sendRequest(optionsRoiExample))
-  var annotationInstance = JSON.parse(await sendRequest(optionsAnnotationExample))
-  var toolInstance = JSON.parse(await sendRequest(optionsToolExample))
-
-  var tool = {
-    "name": "Lesion annotation with three viewers",
-    "description": "This annotation configuration allows the annotation implicit ROIs using points",
-    "version": "1.0.2",
-    "owner": "user@email.com",
-    "privacy": "PUBLIC",
-    "creationDate": "April 22, 2019",
-    "type": "ANNOTATION",
-    
-    "annotationTables": {
-      "lesion": {
-        "defaultAnnotations": [
-          {
-            "typeAnnotation": "text",
-            "annotationProperties": {
-              "ontologyId":"https://bioportal.bioontology.org/ontologies/SNOMEDCT",
-              "ontologyValue": "http://purl.bioontology.org/ontology/SNOMEDCT/52988006",
-              "PreferredName" : "Lesion"
-            }
-          }
-        ],
-        "userAnnotations": [
-          {
-            "title": "Location",
-            "typeAnnotation": "text",
-            "ontologyId": "https://bioportal.bioontology.org/ontologies/FMA",
-            "hasDefaultValue": false,
-            "possibleValues": [
-              {
-                "valueInOntology": "http://purl.org/sig/ont/fma/fma258716",
-                "valueToDisplay" : "Left thalamus"
-              },
-              {
-                "valueInOntology": "http://purl.org/sig/ont/fma/fma258714",
-                "valueToDisplay" : "Right thalamus"
-              },
-              {
-                "valueInOntology": "http://purl.org/sig/ont/fma/fma7647",
-                "valueToDisplay" : "Spinal cord"
-              }
-            ]
-          } 
-        ]
-      }
-    },
-
-    "inputs": {
-      "imagesA":{
-        "name": "Input images",
-        "description": "Input images for the annotation tool",
-        "isList": true,
-        "filter": {
-          "test": "test"
-        },
-        "type": "imageEntityInOut",
-        "imageEntityInOut_FileFormat": "dicom.gz",
-        "imageEntityInOut_Type": "ANATOMICAL",
-        "required": true
-      }
-    },
-
-    "outputs": {
-      "rois":{
-        "name": "Created ROIs",
-        "description": "ROIs created with the annotation tool",
-        "isList": true,
-        "type": "roiInOut",
-        "roiInOut_FileFormat": "json"
-      }
-    },
-
-    "configuration":{
-      "viewers": {
-        "generalConfiguration":{
-          "linking":{
-            "linkingControl": true,
-            "linkingInitialValue": false
-          }
-        },
-        "specificConfiguration":{
-          "left":{
-            "name": "left viewer",
-            "location": {
-              "row": 1,
-              "column": 1,
-              "rowspan": 1,
-              "columnspan": 1
-            },
-            "windowLevel":{
-              "userCanChangeWindowLevel": true
-            },
-            "displayImages":{
-              "possibleImagesToDisplay": ["imagesA"]
-            },
-            "hasDefaultImageToDisplay": false,
-            "displayControls":{
-              "orientations": ["axial", "sagittal", "coronal"],
-              "defaultOrientation": "axial",
-              "smoothing": {
-                "smoothingControl": true,
-                "smoothingDefault": false
-              }
-            }
-          }
-        }
-      },
-
-      "widgets":{
-        "pointSelector":{
-          "roiAnnotationLinks": [
-            {
-              "nameRoi": "lesion",
-              "relationWithRoi": "implicit",
-              "implicitRelationWithRoi":"inside",
-              "geometryPointer": "point"
-            }
-          ]
-        }
-      }
-    }
-  }
 
   var validAnnotation = validateAnnotation(annotationInstance)
   if (!validAnnotation){
