@@ -52,6 +52,7 @@ var main = async () => {
 	// Test getting the schemas from github
   let url_schemas = false // True if loading the schemas locally
 
+  var taskSchemeName = 'task.schema.json'
   var workflowSchemeName = 'workflow.schema.json'
   var coreSchemaName = 'core.schema.json'
   var roiSchemaName = 'roi.schema.json'
@@ -68,6 +69,11 @@ var main = async () => {
   // Get the schemas
   if(url_schemas){
     let baseSchema_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/'
+
+    let optionsTask = {
+      url: baseSchema_Url + workflowSchemeName,
+      method: 'GET'
+    };
 
     let optionsWorkflow = {
       url: baseSchema_Url + workflowSchemeName,
@@ -94,6 +100,9 @@ var main = async () => {
       method: 'GET'
     };
 
+    taskSchemaString = await sendRequest(optionsWorkflow)
+    taskSchema = JSON.parse(workflowSchemaString)
+
     workflowSchemaString = await sendRequest(optionsWorkflow)
     workflowSchema = JSON.parse(workflowSchemaString)
 
@@ -112,6 +121,7 @@ var main = async () => {
   else{
     let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/schemas/'
 
+    taskSchema = require(folderpath + taskSchemeName)
     workflowSchema = require(folderpath + workflowSchemeName)
     coreSchema = require(folderpath + coreSchemaName)
     roiSchema = require(folderpath + roiSchemaName)
@@ -126,11 +136,16 @@ var main = async () => {
   	console.log("Validate schemas:")
 
     var ajvOptions = {
-	    schemas: [workflowSchema, coreSchema, roiSchema, annotationSchema, toolSchema],
+	    schemas: [taskSchema, workflowSchema, coreSchema, roiSchema, annotationSchema, toolSchema],
 	    allErrors: true
 	  }
 
 	  var ajv_url = new Ajv(ajvOptions); // options can be passed, e.g. {allErrors: true}
+
+    var validateTask = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/task.schema.json');
+
+    if(validateTask)
+      console.log("validateTask OK")
 
 	  var validateWorkflow = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/workflow.schema.json');
 
