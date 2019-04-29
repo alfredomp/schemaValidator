@@ -106,6 +106,7 @@ var main = async () => {
   var toolSchemaName = 'tool.schema.json'
   var materializedTaskSchemaName = 'materializedTask.schema.json'
   var materializedTaskResultSchemaName = 'materializedTaskResult.schema.json'
+  var taskExecutorSchemaName = 'taskExecutor.schema.json'
 
   var workflowSchema = {}
   var taskSchema = {}
@@ -115,6 +116,7 @@ var main = async () => {
   var toolSchema = {}
   var materializedTaskSchema = {}
   var materializedTaskResultSchema = {}
+  var taskExecutorSchema = {}
 
   // Load the schemas
   console.log("Load the schemas")
@@ -129,6 +131,7 @@ var main = async () => {
     toolSchema = await getJsonFromUrl(baseSchema_Url + toolSchemaName)
     materializedTaskSchema = await getJsonFromUrl(baseSchema_Url + materializedTaskSchemaName)
     materializedTaskResultSchema = await getJsonFromUrl(baseSchema_Url + materializedTaskResultSchemaName)
+    taskExecutorSchema = await getJsonFromUrl(baseSchema_Url + taskExecutorSchemaName)
   }
   else{
     let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/schemas/'
@@ -141,6 +144,7 @@ var main = async () => {
     toolSchema = require(folderpath + toolSchemaName)
     materializedTaskSchema = require(folderpath + materializedTaskSchemaName)
     materializedTaskResultSchema = require(folderpath + materializedTaskResultSchemaName)
+    taskExecutorSchema = require(folderpath + taskExecutorSchemaName)
   }
 
   // Validate schemas
@@ -151,7 +155,7 @@ var main = async () => {
 
     var ajvOptions = {
 	    schemas: [taskSchema, workflowSchema, coreSchema, roiSchema, annotationSchema,
-       toolSchema, materializedTaskSchema, materializedTaskResultSchema],
+       toolSchema, materializedTaskSchema, materializedTaskResultSchema, taskExecutorSchema],
 	    allErrors: true
 	  }
 
@@ -167,6 +171,7 @@ var main = async () => {
     var validateTool = await validateSchema(ajv_url, baseSchemaId + toolSchemaName)
     var validateMaterializedTask = await validateSchema(ajv_url, baseSchemaId + materializedTaskSchemaName)
     var validateMaterializedTaskResult = await validateSchema(ajv_url, baseSchemaId + materializedTaskResultSchemaName)
+    var validateTaskExecutor = await validateSchema(ajv_url, baseSchemaId + taskExecutorSchemaName)
   }
   catch(e){
   	console.log('Error creating validate_url:', e)
@@ -183,6 +188,7 @@ var main = async () => {
   var taskInstanceFileName = 'task-annotation.json'
   var materializedTaskInstanceFileName = 'materialized-task.json'
   var materializedTaskResultsInstanceFileName = 'materialized-task-results.json'
+  var taskExecutorFileName = 'task-annotation-executor.json'
 
   var roiInstance = {}
   var annotationInstance = {}
@@ -190,6 +196,7 @@ var main = async () => {
   var taskInstance = {}
   var materializedTaskInstance = {}
   var materializedTaskResultsInstance = {}
+  var taskExecutorInstance = {}
 
   if(url_instances){
     let baseInstance_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
@@ -200,6 +207,7 @@ var main = async () => {
     taskInstance = await getJsonFromUrl(baseInstance_Url + taskInstanceFileName)
     materializedTaskInstance = await getJsonFromUrl(baseInstance_Url + materializedTaskInstanceFileName)
     materializedTaskResultsInstance = await getJsonFromUrl(baseInstance_Url + materializedTaskResultsInstanceFileName)
+    taskExecutorInstance = await getJsonFromUrl(baseInstance_Url + taskExecutorFileName)
   }
   else{
     let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/examples/annotationWorkflow/'
@@ -210,6 +218,7 @@ var main = async () => {
     taskInstance = require(folderpath + taskInstanceFileName)
     materializedTaskInstance = require(folderpath + materializedTaskInstanceFileName)
     materializedTaskResultsInstance = require(folderpath + materializedTaskResultsInstanceFileName)
+    taskExecutorInstance = require(folderpath + taskExecutorFileName)
   }
 
   // Validate schema instances
@@ -222,6 +231,7 @@ var main = async () => {
   await validateInstance(validateTask, taskInstance, Object.keys({taskInstance})[0])
   await validateInstance(validateMaterializedTask, materializedTaskInstance, Object.keys({materializedTaskInstance})[0])
   await validateInstance(validateMaterializedTaskResult, materializedTaskResultsInstance, Object.keys({materializedTaskResultsInstance})[0])
+  await validateInstance(validateTaskExecutor, taskExecutorInstance, Object.keys({taskExecutorInstance})[0])
 
 }
 
