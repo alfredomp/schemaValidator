@@ -22,6 +22,52 @@ var sendRequest = async (options) => {
     })
 }
 
+var getJsonFromUrl = async (url, print=false) => {
+
+  console.log("Loading:", url)
+  let options = {
+    url: url,
+    method: 'GET'
+  };
+
+  stringVersion = await sendRequest(options)
+  jsonVersion = JSON.parse(stringVersion)
+
+  if(print)
+    console.log("Json:", jsonVersion)
+
+  return jsonVersion
+}
+
+var validateSchema = async (ajv_url, schemaId) => {
+  console.log("Validating:", schemaId)
+  var validatedSchema = ajv_url.getSchema(schemaId);
+
+  if(validateSchema)
+    console.log("Schema validated: OK")
+  else
+    console.log("ERROR validating schema.")
+
+  return validatedSchema
+}
+
+var validateInstance = async (validatingFunction, instance, instanceName, print=false) => {
+
+  console.log("Validating instance:", instanceName)
+
+
+  if(print)
+    console.log('Instance:', instance)
+
+  var validated = validatingFunction(instance)
+  if (!validated){
+    console.log("Not valid. Error:", validatingFunction.errors);
+  }
+  else{
+    console.log("Valid instance OK")
+  }
+}
+
 // Main function
 var main = async () => {
 
@@ -58,65 +104,31 @@ var main = async () => {
   var roiSchemaName = 'roi.schema.json'
   var annotationSchemaName = 'annotation.schema.json'
   var toolSchemaName = 'tool.schema.json'
+  var materializedTaskSchemaName = 'materializedTask.schema.json'
+  var materializedTaskResultSchemaName = 'materializedTaskResult.schema.json'
 
   var workflowSchema = {}
+  var taskSchema = {}
   var coreSchema = {}
   var roiSchema = {}
   var annotationSchema = {}
   var toolSchema = {}
+  var materializedTaskSchema = {}
+  var materializedTaskResultSchema = {}
 
-
-  // Get the schemas
+  // Load the schemas
+  console.log("Load the schemas")
   if(url_schemas){
     let baseSchema_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/'
 
-    let optionsTask = {
-      url: baseSchema_Url + workflowSchemeName,
-      method: 'GET'
-    };
-
-    let optionsWorkflow = {
-      url: baseSchema_Url + workflowSchemeName,
-      method: 'GET'
-    };
-
-    let optionsCore = {
-      url: baseSchema_Url + coreSchemaName,
-      method: 'GET'
-    };
-
-    let optionsRoi = {
-      url: baseSchema_Url + roiSchemaName,
-      method: 'GET'
-    };
-
-    let optionsAnnotation = {
-      url: baseSchema_Url + annotationSchemaName,
-      method: 'GET'
-    };
-
-    let optionsTool = {
-      url: baseSchema_Url + toolSchemaName,
-      method: 'GET'
-    };
-
-    taskSchemaString = await sendRequest(optionsWorkflow)
-    taskSchema = JSON.parse(workflowSchemaString)
-
-    workflowSchemaString = await sendRequest(optionsWorkflow)
-    workflowSchema = JSON.parse(workflowSchemaString)
-
-    coreSchemaString = await sendRequest(optionsCore)
-    coreSchema = JSON.parse(coreSchemaString)
-
-    roiSchemaString = await sendRequest(optionsRoi)
-    roiSchema = JSON.parse(roiSchemaString)
-
-    annotationSchemaString = await sendRequest(optionsAnnotation)
-    annotationSchema = JSON.parse(annotationSchemaString)
-
-    toolSchemaString = await sendRequest(optionsTool)
-    toolSchema = JSON.parse(toolSchemaString)
+    taskSchema = await getJsonFromUrl(baseSchema_Url + taskSchemeName)
+    workflowSchema = await getJsonFromUrl(baseSchema_Url + workflowSchemeName)
+    coreSchema = await getJsonFromUrl(baseSchema_Url + coreSchemaName)
+    roiSchema = await getJsonFromUrl(baseSchema_Url + roiSchemaName)
+    annotationSchema = await getJsonFromUrl(baseSchema_Url + annotationSchemaName)
+    toolSchema = await getJsonFromUrl(baseSchema_Url + toolSchemaName)
+    materializedTaskSchema = await getJsonFromUrl(baseSchema_Url + materializedTaskSchemaName)
+    materializedTaskResultSchema = await getJsonFromUrl(baseSchema_Url + materializedTaskResultSchemaName)
   }
   else{
     let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/schemas/'
@@ -127,86 +139,67 @@ var main = async () => {
     roiSchema = require(folderpath + roiSchemaName)
     annotationSchema = require(folderpath + annotationSchemaName)
     toolSchema = require(folderpath + toolSchemaName)
+    materializedTaskSchema = require(folderpath + materializedTaskSchemaName)
+    materializedTaskResultSchema = require(folderpath + materializedTaskResultSchemaName)
   }
 
   // Validate schemas
-
+  console.log("")
   try{
 
   	console.log("Validate schemas:")
 
     var ajvOptions = {
-	    schemas: [taskSchema, workflowSchema, coreSchema, roiSchema, annotationSchema, toolSchema],
+	    schemas: [taskSchema, workflowSchema, coreSchema, roiSchema, annotationSchema,
+       toolSchema, materializedTaskSchema, materializedTaskResultSchema],
 	    allErrors: true
 	  }
 
 	  var ajv_url = new Ajv(ajvOptions); // options can be passed, e.g. {allErrors: true}
 
-    var validateTask = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/task.schema.json');
+    let baseSchemaId = 'https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/'
 
-    if(validateTask)
-      console.log("validateTask OK")
-
-	  var validateWorkflow = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/workflow.schema.json');
-
-    if(validateWorkflow)
-	  	console.log("validateWorkflow OK")
-
-	  var validateAnnotation = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/annotation.schema.json');
-
-	  if(validateAnnotation)
-	  	console.log("validateAnnotation OK")
-
-	  var validateRoi = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/roi.schema.json');
-
-	  if(validateRoi)
-	  	console.log("validateRoi OK")
-
-    var validateTool = ajv_url.getSchema('https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/tool.schema.json');
-
-    if(validateTool)
-      console.log("validateTool OK")
-
-	  console.log("")
-
+    var validateTask = await validateSchema(ajv_url, baseSchemaId + taskSchemeName)
+    var validateWorkflow = await validateSchema(ajv_url, baseSchemaId + workflowSchemeName)
+    var validateCore = await validateSchema(ajv_url, baseSchemaId + coreSchemaName)
+    var validateRoi = await validateSchema(ajv_url, baseSchemaId + roiSchemaName)
+    var validateAnnotation = await validateSchema(ajv_url, baseSchemaId + annotationSchemaName)
+    var validateTool = await validateSchema(ajv_url, baseSchemaId + toolSchemaName)
+    var validateMaterializedTask = await validateSchema(ajv_url, baseSchemaId + materializedTaskSchemaName)
+    var validateMaterializedTaskResult = await validateSchema(ajv_url, baseSchemaId + materializedTaskResultSchemaName)
   }
   catch(e){
   	console.log('Error creating validate_url:', e)
   }
 
   // Load schema instances to be validated
-
+  console.log("")
+  console.log("Load schema instances")
   let url_instances = false
 
   var roiInstanceFileName = 'roi_notSubmitted.json'
   var annotationInstanceFileName = 'annotation_notSubmitted.json'
   var toolInstanceFileName = 'tool_annotationThreeViewers.json'
+  var taskInstanceFileName = 'task-annotation.json'
+  var materializedTaskInstanceFileName = 'materialized-task.json'
+  var materializedTaskResultsInstanceFileName = 'materialized-task-results.json'
 
   var roiInstance = {}
   var annotationInstance = {}
   var toolInstance = {}
+  var taskInstance = {}
+  var materializedTaskInstance = {}
+  var materializedTaskResultsInstance = {}
 
   if(url_instances){
     let baseInstance_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
 
-    let optionsRoiExample = {
-      url: baseInstance_Url + roiInstanceFileName,
-      method: 'GET'
-    };
-
-    let optionsAnnotationExample = {
-      url: baseInstance_Url + annotationInstanceFileName,
-      method: 'GET'
-    };
-
-    let optionsToolExample = {
-      url: baseInstance_Url + toolInstanceFileName,
-      method: 'GET'
-    };
-
-    roiInstance = JSON.parse(await sendRequest(optionsRoiExample))
-    annotationInstance = JSON.parse(await sendRequest(optionsAnnotationExample))
-    toolInstance = JSON.parse(await sendRequest(optionsToolExample))
+    roiInstance = await getJsonFromUrl(baseInstance_Url + roiInstanceFileName)
+    annotationInstance = await getJsonFromUrl(baseInstance_Url + annotationInstanceFileName)
+    toolInstance = await getJsonFromUrl(baseInstance_Url + toolInstanceFileName)
+    taskInstance = await getJsonFromUrl(baseInstance_Url + taskInstanceFileName)
+    materializedTaskInstance = await getJsonFromUrl(baseInstance_Url + materializedTaskInstanceFileName)
+    materializedTaskResultsInstance = await getJsonFromUrl(baseInstance_Url + materializedTaskResultsInstanceFileName)
   }
   else{
     let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/examples/annotationWorkflow/'
@@ -214,35 +207,21 @@ var main = async () => {
     roiInstance = require(folderpath + roiInstanceFileName)
     annotationInstance = require(folderpath + annotationInstanceFileName)
     toolInstance = require(folderpath + toolInstanceFileName)
+    taskInstance = require(folderpath + taskInstanceFileName)
+    materializedTaskInstance = require(folderpath + materializedTaskInstanceFileName)
+    materializedTaskResultsInstance = require(folderpath + materializedTaskResultsInstanceFileName)
   }
 
   // Validate schema instances
+  console.log("")
   console.log("Validate instances:")
 
-  var validAnnotation = validateAnnotation(annotationInstance)
-  if (!validAnnotation){
-  	console.log("Not valid annotation. Error:", validateAnnotation.errors);
-  }
-  else{
-  	console.log("Annotation instance OK")
-  }
-
-  var validRoi = validateRoi(roiInstance)
-  if (!validRoi){
-  	console.log("Not valid roi. Error:", validateRoi.errors);
-  }
-  else{
-  	console.log("Roi instance OK")
-  }
-
-  var validTool = validateTool(toolInstance)
-  if (!validTool){
-    console.log("Not valid tool. Error:", validateTool.errors);
-    console.log("Not valid tool. Error[0]:", validateTool.errors[0]);
-  }
-  else{
-    console.log("Tool instance OK")
-  }
+  await validateInstance(validateAnnotation, annotationInstance, Object.keys({annotationInstance})[0])
+  await validateInstance(validateRoi, roiInstance, Object.keys({roiInstance})[0])
+  await validateInstance(validateTool, toolInstance, Object.keys({toolInstance})[0])
+  await validateInstance(validateTask, taskInstance, Object.keys({taskInstance})[0])
+  await validateInstance(validateMaterializedTask, materializedTaskInstance, Object.keys({materializedTaskInstance})[0])
+  await validateInstance(validateMaterializedTaskResult, materializedTaskResultsInstance, Object.keys({materializedTaskResultsInstance})[0])
 
 }
 
