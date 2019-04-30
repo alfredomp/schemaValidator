@@ -98,64 +98,57 @@ var main = async () => {
 	// Test getting the schemas from github
   let url_schemas = false // True if loading the schemas locally
 
-  var taskSchemeName = 'task.schema.json'
-  var workflowSchemeName = 'workflow.schema.json'
-  var coreSchemaName = 'core.schema.json'
-  var roiSchemaName = 'roi.schema.json'
-  var annotationSchemaName = 'annotation.schema.json'
-  var toolSchemaName = 'tool.schema.json'
-  var materializedTaskSchemaName = 'materializedTask.schema.json'
-  var materializedTaskResultSchemaName = 'materializedTaskResult.schema.json'
-  var taskExecutorSchemaName = 'taskExecutor.schema.json'
+  // Create a meta object for each schema
+  var task = {schemaName: 'task.schema.json'}
+  var workflow = {schemaName: 'workflow.schema.json'}
+  var core = {schemaName: 'core.schema.json'}
+  var roi = {schemaName: 'roi.schema.json'}
+  var annotation = {schemaName: 'annotation.schema.json'}
+  var tool = {schemaName: 'tool.schema.json'}
+  var materializedTask = {schemaName: 'materializedTask.schema.json'}
+  var materializedTaskResult = {schemaName: 'materializedTaskResult.schema.json'}
+  var taskExecutor = {schemaName: 'taskExecutor.schema.json'}
+  var taskResult = {schemaName: 'taskResult.schema.json'}
+  var workflowExecutor = {schemaName: 'workflowExecutor.schema.json'}
+  var workflowResult = {schemaName: 'workflowResult.schema.json'}
 
-  var workflowSchema = {}
-  var taskSchema = {}
-  var coreSchema = {}
-  var roiSchema = {}
-  var annotationSchema = {}
-  var toolSchema = {}
-  var materializedTaskSchema = {}
-  var materializedTaskResultSchema = {}
-  var taskExecutorSchema = {}
+  // All the schemas in an array
+  var allMetaSchemas = [task, workflow, core, roi, annotation, tool, materializedTask,
+   materializedTaskResult, taskExecutor, taskResult, workflowExecutor, workflowResult]
 
-  // Load the schemas
+  // Load the schema for each metaobject
   console.log("Load the schemas")
   if(url_schemas){
+
     let baseSchema_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/schemas/'
 
-    taskSchema = await getJsonFromUrl(baseSchema_Url + taskSchemeName)
-    workflowSchema = await getJsonFromUrl(baseSchema_Url + workflowSchemeName)
-    coreSchema = await getJsonFromUrl(baseSchema_Url + coreSchemaName)
-    roiSchema = await getJsonFromUrl(baseSchema_Url + roiSchemaName)
-    annotationSchema = await getJsonFromUrl(baseSchema_Url + annotationSchemaName)
-    toolSchema = await getJsonFromUrl(baseSchema_Url + toolSchemaName)
-    materializedTaskSchema = await getJsonFromUrl(baseSchema_Url + materializedTaskSchemaName)
-    materializedTaskResultSchema = await getJsonFromUrl(baseSchema_Url + materializedTaskResultSchemaName)
-    taskExecutorSchema = await getJsonFromUrl(baseSchema_Url + taskExecutorSchemaName)
+    for(i in allMetaSchemas){
+      allMetaSchemas[i].schema = await getJsonFromUrl(baseSchema_Url + allMetaSchemas[i].schemaName)
+    }
+
   }
   else{
     let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/schemas/'
 
-    taskSchema = require(folderpath + taskSchemeName)
-    workflowSchema = require(folderpath + workflowSchemeName)
-    coreSchema = require(folderpath + coreSchemaName)
-    roiSchema = require(folderpath + roiSchemaName)
-    annotationSchema = require(folderpath + annotationSchemaName)
-    toolSchema = require(folderpath + toolSchemaName)
-    materializedTaskSchema = require(folderpath + materializedTaskSchemaName)
-    materializedTaskResultSchema = require(folderpath + materializedTaskResultSchemaName)
-    taskExecutorSchema = require(folderpath + taskExecutorSchemaName)
+    for(i in allMetaSchemas){
+      allMetaSchemas[i].schema = require(folderpath + allMetaSchemas[i].schemaName)
+    }
   }
 
-  // Validate schemas
+  // Validate each schemas
   console.log("")
   try{
 
   	console.log("Validate schemas:")
 
+    // Add all the schemas to an array to be passed to the ajv constructor
+    let schemas = []
+    for(i in allMetaSchemas){
+      schemas.push(allMetaSchemas[i].schema)
+    }
+
     var ajvOptions = {
-	    schemas: [taskSchema, workflowSchema, coreSchema, roiSchema, annotationSchema,
-       toolSchema, materializedTaskSchema, materializedTaskResultSchema, taskExecutorSchema],
+      schemas: schemas,
 	    allErrors: true
 	  }
 
@@ -163,15 +156,11 @@ var main = async () => {
 
     let baseSchemaId = 'https://raw.githubusercontent.com/SPINEProject/SPINE-json-schema/master/schemas/'
 
-    var validateTask = await validateSchema(ajv_url, baseSchemaId + taskSchemeName)
-    var validateWorkflow = await validateSchema(ajv_url, baseSchemaId + workflowSchemeName)
-    var validateCore = await validateSchema(ajv_url, baseSchemaId + coreSchemaName)
-    var validateRoi = await validateSchema(ajv_url, baseSchemaId + roiSchemaName)
-    var validateAnnotation = await validateSchema(ajv_url, baseSchemaId + annotationSchemaName)
-    var validateTool = await validateSchema(ajv_url, baseSchemaId + toolSchemaName)
-    var validateMaterializedTask = await validateSchema(ajv_url, baseSchemaId + materializedTaskSchemaName)
-    var validateMaterializedTaskResult = await validateSchema(ajv_url, baseSchemaId + materializedTaskResultSchemaName)
-    var validateTaskExecutor = await validateSchema(ajv_url, baseSchemaId + taskExecutorSchemaName)
+    // Validate each schema. This creates a validationFunction in each meta object
+    for(i in allMetaSchemas){
+      allMetaSchemas[i].validationFunction = await validateSchema(ajv_url, baseSchemaId + allMetaSchemas[i].schemaName)
+    }
+
   }
   catch(e){
   	console.log('Error creating validate_url:', e)
@@ -180,59 +169,56 @@ var main = async () => {
   // Load schema instances to be validated
   console.log("")
   console.log("Load schema instances")
+
   let url_instances = false
 
-  var roiInstanceFileName = 'roi_notSubmitted.json'
-  var annotationInstanceFileName = 'annotation_notSubmitted.json'
-  var toolInstanceFileName = 'tool_annotationThreeViewers.json'
-  var taskInstanceFileName = 'task-annotation.json'
-  var materializedTaskInstanceFileName = 'materialized-task.json'
-  var materializedTaskResultsInstanceFileName = 'materialized-task-results.json'
-  var taskExecutorFileName = 'task-annotation-executor.json'
+  // Create metaobjects for each instance
+  var taskInstance = {fileName: 'task-annotation.json'}
+  var workflowInstance = {fileName: 'workflow-annotation.json'}
+  var roiInstance = {fileName: 'roi_notSubmitted.json'}
+  var annotationInstance = {fileName: 'annotation_notSubmitted.json'}
+  var toolInstance = {fileName: 'tool_annotationThreeViewers.json'}
+  var materializedTaskInstance = {fileName: 'materialized-task.json'}
+  var materializedTaskResultsInstance = {fileName: 'materialized-task-results.json'}
+  var taskExecutorInstance = {fileName: 'task-annotation-executor.json'}
+  var taskResultInstance = {fileName: 'task-annotation-results.json'}
+  var workflowExecutorInstance = {fileName: 'workflow-annotation-executor.json'}
+  var workflowResultInstance = {fileName: 'workflow-annotation-results.json'}
 
-  var roiInstance = {}
-  var annotationInstance = {}
-  var toolInstance = {}
-  var taskInstance = {}
-  var materializedTaskInstance = {}
-  var materializedTaskResultsInstance = {}
-  var taskExecutorInstance = {}
+  var allMetaInstances = [taskInstance, workflowInstance, roiInstance, annotationInstance,
+   toolInstance, materializedTaskInstance, materializedTaskResultsInstance, taskExecutorInstance, 
+   taskResultInstance, workflowExecutorInstance, workflowResultInstance]
 
-  if(url_instances){
-    let baseInstance_Url = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
+  // Define the functions to be used to load the json files, i.e., url or file
+  var loadJsonFunction = getJsonFromUrl
+  var baseLocation = 'https://raw.githubusercontent.com/alfredomp/SPINE-json-schema/master/examples/annotationWorkflow/'
 
-    roiInstance = await getJsonFromUrl(baseInstance_Url + roiInstanceFileName)
-    annotationInstance = await getJsonFromUrl(baseInstance_Url + annotationInstanceFileName)
-    toolInstance = await getJsonFromUrl(baseInstance_Url + toolInstanceFileName)
-    taskInstance = await getJsonFromUrl(baseInstance_Url + taskInstanceFileName)
-    materializedTaskInstance = await getJsonFromUrl(baseInstance_Url + materializedTaskInstanceFileName)
-    materializedTaskResultsInstance = await getJsonFromUrl(baseInstance_Url + materializedTaskResultsInstanceFileName)
-    taskExecutorInstance = await getJsonFromUrl(baseInstance_Url + taskExecutorFileName)
+  if(!url_instances){
+    loadJsonFunction = require
+    baseLocation = '/Users/alfredito/workspace/work/SPINE-json-schema/examples/annotationWorkflow/'
   }
-  else{
-    let folderpath = '/Users/alfredito/workspace/work/SPINE-json-schema/examples/annotationWorkflow/'
 
-    roiInstance = require(folderpath + roiInstanceFileName)
-    annotationInstance = require(folderpath + annotationInstanceFileName)
-    toolInstance = require(folderpath + toolInstanceFileName)
-    taskInstance = require(folderpath + taskInstanceFileName)
-    materializedTaskInstance = require(folderpath + materializedTaskInstanceFileName)
-    materializedTaskResultsInstance = require(folderpath + materializedTaskResultsInstanceFileName)
-    taskExecutorInstance = require(folderpath + taskExecutorFileName)
+  // Loaad the instance json for each meta instance
+  for(i in allMetaInstances){
+    allMetaInstances[i].instance = await loadJsonFunction(baseLocation + allMetaInstances[i].fileName)
   }
 
   // Validate schema instances
   console.log("")
   console.log("Validate instances:")
 
-  await validateInstance(validateAnnotation, annotationInstance, Object.keys({annotationInstance})[0])
-  await validateInstance(validateRoi, roiInstance, Object.keys({roiInstance})[0])
-  await validateInstance(validateTool, toolInstance, Object.keys({toolInstance})[0])
-  await validateInstance(validateTask, taskInstance, Object.keys({taskInstance})[0])
-  await validateInstance(validateMaterializedTask, materializedTaskInstance, Object.keys({materializedTaskInstance})[0])
-  await validateInstance(validateMaterializedTaskResult, materializedTaskResultsInstance, Object.keys({materializedTaskResultsInstance})[0])
-  await validateInstance(validateTaskExecutor, taskExecutorInstance, Object.keys({taskExecutorInstance})[0])
+  await validateInstance(task.validationFunction, taskInstance.instance, taskInstance.fileName)
+  await validateInstance(workflow.validationFunction, workflowInstance.instance, workflowInstance.fileName)
+  await validateInstance(roi.validationFunction, roiInstance.instance, roiInstance.fileName)
+  await validateInstance(annotation.validationFunction, annotationInstance.instance, annotationInstance.fileName)
+  await validateInstance(tool.validationFunction, toolInstance.instance, toolInstance.fileName)
+  await validateInstance(materializedTask.validationFunction, materializedTaskInstance.instance, materializedTaskInstance.fileName)
+  await validateInstance(materializedTaskResult.validationFunction, materializedTaskResultsInstance.instance, materializedTaskResultsInstance.fileName)
+  await validateInstance(taskExecutor.validationFunction, taskExecutorInstance.instance, taskExecutorInstance.fileName)
+  await validateInstance(taskResult.validationFunction, taskResultInstance.instance, taskResultInstance.fileName)
+  await validateInstance(workflowExecutor.validationFunction, workflowExecutorInstance.instance, workflowExecutorInstance.fileName)
 
+  await validateInstance(workflowResult.validationFunction, workflowResultInstance.instance, workflowResultInstance.fileName)
 }
 
 try{
