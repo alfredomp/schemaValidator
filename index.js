@@ -104,6 +104,7 @@ var main = async () => {
   var core = {schemaName: 'core.schema.json'}
   var roi = {schemaName: 'roi.schema.json'}
   var annotation = {schemaName: 'annotation.schema.json'}
+  var annotationForm = {schemaName: 'annotationForm.schema.json'}
   var tool = {schemaName: 'tool.schema.json'}
   var materializedTask = {schemaName: 'materializedTask.schema.json'}
   var materializedTaskResult = {schemaName: 'materializedTaskResult.schema.json'}
@@ -111,10 +112,13 @@ var main = async () => {
   var taskResult = {schemaName: 'taskResult.schema.json'}
   var workflowExecutor = {schemaName: 'workflowExecutor.schema.json'}
   var workflowResult = {schemaName: 'workflowResult.schema.json'}
+  var experiment = {schemaName: 'experiment.schema.json'}
+  var statisticalModel = {schemaName: 'statisticalModel.schema.json'}
 
   // All the schemas in an array
-  var allMetaSchemas = [task, workflow, core, roi, annotation, tool, materializedTask,
-   materializedTaskResult, taskExecutor, taskResult, workflowExecutor, workflowResult]
+  var allMetaSchemas = [task, workflow, core, roi, annotation, annotationForm, tool, materializedTask,
+   materializedTaskResult, taskExecutor, taskResult, workflowExecutor, workflowResult,
+   experiment, statisticalModel]
 
   // Load the schema for each metaobject
   console.log("Load the schemas")
@@ -184,10 +188,12 @@ var main = async () => {
   var taskResultInstance = {fileName: 'task-annotation-results.json'}
   var workflowExecutorInstance = {fileName: 'workflow-annotation-executor.json'}
   var workflowResultInstance = {fileName: 'workflow-annotation-results.json'}
+  var experiment_POST_Instance = {fileName: 'experiment_POST.json'}
+  var experiment_PUT_GET_Instance = {fileName: 'experiment_PUT_GET.json'}
 
   var allMetaInstances = [taskInstance, workflowInstance, roiInstance, annotationInstance,
    toolInstance, materializedTaskInstance, materializedTaskResultsInstance, taskExecutorInstance, 
-   taskResultInstance, workflowExecutorInstance, workflowResultInstance]
+   taskResultInstance, workflowExecutorInstance, workflowResultInstance, experiment_POST_Instance]
 
   // Define the functions to be used to load the json files, i.e., url or file
   var loadJsonFunction = getJsonFromUrl
@@ -217,8 +223,11 @@ var main = async () => {
   await validateInstance(taskExecutor.validationFunction, taskExecutorInstance.instance, taskExecutorInstance.fileName)
   await validateInstance(taskResult.validationFunction, taskResultInstance.instance, taskResultInstance.fileName)
   await validateInstance(workflowExecutor.validationFunction, workflowExecutorInstance.instance, workflowExecutorInstance.fileName)
-
   await validateInstance(workflowResult.validationFunction, workflowResultInstance.instance, workflowResultInstance.fileName)
+
+  await validateInstance(experiment.validationFunction, experiment_POST_Instance.instance, experiment_POST_Instance.fileName)
+  await validateInstance(experiment.validationFunction, experiment_PUT_GET_Instance.instance, experiment_PUT_GET_Instance.fileName)
+
 }
 
 try{
