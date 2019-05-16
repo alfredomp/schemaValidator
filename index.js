@@ -190,10 +190,15 @@ var main = async () => {
   var workflowResultInstance = {fileName: 'workflow-annotation-results.json'}
   var experiment_POST_Instance = {fileName: 'experiment_POST.json'}
   var experiment_PUT_GET_Instance = {fileName: 'experiment_PUT_GET.json'}
+  var statisticalModel_SPINE_GLM_Instance = {fileName: 'statisticalModel_SPINE_GLM.json'}
+  var statisticalModel_Author_GLM_Instance = {fileName: 'statisticalModel_Author_GLM.json'}
 
-  var allMetaInstances = [taskInstance, workflowInstance, roiInstance, annotationInstance,
-   toolInstance, materializedTaskInstance, materializedTaskResultsInstance, taskExecutorInstance, 
-   taskResultInstance, workflowExecutorInstance, workflowResultInstance, experiment_POST_Instance]
+  var allMetaInstances = [taskInstance, workflowInstance, roiInstance, 
+    annotationInstance, toolInstance, materializedTaskInstance, 
+    materializedTaskResultsInstance, taskExecutorInstance, taskResultInstance,
+    workflowExecutorInstance, workflowResultInstance, experiment_POST_Instance,
+    experiment_PUT_GET_Instance, statisticalModel_SPINE_GLM_Instance, 
+    statisticalModel_Author_GLM_Instance]
 
   // Define the functions to be used to load the json files, i.e., url or file
   var loadJsonFunction = getJsonFromUrl
@@ -224,9 +229,12 @@ var main = async () => {
   await validateInstance(taskResult.validationFunction, taskResultInstance.instance, taskResultInstance.fileName)
   await validateInstance(workflowExecutor.validationFunction, workflowExecutorInstance.instance, workflowExecutorInstance.fileName)
   await validateInstance(workflowResult.validationFunction, workflowResultInstance.instance, workflowResultInstance.fileName)
-
-  await validateInstance(experiment.validationFunction, experiment_POST_Instance.instance, experiment_POST_Instance.fileName)
+  //await validateInstance(experiment.validationFunction, experiment_POST_Instance.instance, experiment_POST_Instance.fileName)
   await validateInstance(experiment.validationFunction, experiment_PUT_GET_Instance.instance, experiment_PUT_GET_Instance.fileName)
+  await validateInstance(statisticalModel.validationFunction, statisticalModel_SPINE_GLM_Instance.instance, statisticalModel_SPINE_GLM_Instance.fileName)
+
+  await validateInstance(statisticalModel.validationFunction, statisticalModel_Author_GLM_Instance.instance, statisticalModel_Author_GLM_Instance.fileName)
+  
 
 }
 
